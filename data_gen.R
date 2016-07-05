@@ -27,7 +27,7 @@ kappa <- 0 # For now remove the engine effects
 
 dat <- cbind(dat, x_star_0, x_star_25, x_star_50, kappa)
 
-true_beta <- matrix(rnorm(p_dim*j_dim, mean=2), nrow=p_dim, ncol=j_dim)
+true_beta <- matrix(rnorm((p_dim + 1)*j_dim, mean=2), nrow=(p_dim + 1), ncol=j_dim)
 colnames(true_beta) <- gear_names
 
 construct_eta <- function(dat) {
@@ -35,7 +35,7 @@ construct_eta <- function(dat) {
     for(b in 1:nrow(dat)) {
         dat_row <- dat[b,]
         beta <- true_beta[,dat_row$gear_type, drop=FALSE]
-        x <- as.matrix(dat_row[,grepl("^x_star", names(dat_row))])
+        x <- simplify2array(c(1, dat_row[,grepl("^x_star", names(dat_row))]))
         eta[b] <- x %*% beta
     }
 
@@ -53,3 +53,6 @@ dat$y[(dat$y_star > c1) & (dat$y_star < c2)] <- 2
 dat_fuel <- dat[dat$gear_type=="FUEL",]
 fuel_model <- clm(factor(y) ~ x_star_0 + x_star_25 + x_star_50, data=dat_fuel)
 summary(fuel_model)
+
+fmodel <- clm(factor(y) ~ x_star_0*gear_type + x_star_25*gear_type + x_star_50*gear_type, data=dat)
+summary(fmodel)
